@@ -21,7 +21,8 @@ import {
   FileText,
   Lock,
   Delete,
-  LogOut
+  LogOut,
+  Briefcase
 } from 'lucide-react';
 
 const CORRECT_PIN = "1234";
@@ -36,7 +37,8 @@ const INITIAL_REMOTOS = [
     horaFin: "12:00",
     locutor: "Por asignar",
     ingeniero: "Hector Ogaz",
-    estacion: "La Rancherita",
+    vendedor: "Carlos Mendoza",
+    estacion: "La más picuda",
     estado: "Confirmado",
     lugar: "Sucursal Principal",
     notas: "Control de 11:00 AM a 12:00 PM"
@@ -50,7 +52,8 @@ const INITIAL_REMOTOS = [
     horaFin: "13:30",
     locutor: "Por asignar",
     ingeniero: "Hector Ogaz",
-    estacion: "La Rancherita",
+    vendedor: "Carlos Mendoza",
+    estacion: "La más picuda",
     estado: "Confirmado",
     lugar: "Sucursal Principal",
     notas: "Segundo bloque 12:30 PM"
@@ -64,7 +67,8 @@ const INITIAL_REMOTOS = [
     horaFin: "12:00",
     locutor: "Por asignar",
     ingeniero: "Hector Ogaz",
-    estacion: "EXA FM",
+    vendedor: "Ana Torres",
+    estacion: "Éxtasis Digital",
     estado: "Confirmado",
     lugar: "Local comercial",
     notas: "Transmisión en vivo"
@@ -78,7 +82,8 @@ const INITIAL_REMOTOS = [
     horaFin: "12:00",
     locutor: "Por asignar",
     ingeniero: "Hector Ogaz",
-    estacion: "La Maxima",
+    vendedor: "Carlos Mendoza",
+    estacion: "La más picuda",
     estado: "Confirmado",
     lugar: "Matriz",
     notas: "Remoto matutino"
@@ -92,7 +97,8 @@ const INITIAL_REMOTOS = [
     horaFin: "11:00",
     locutor: "Gerardo",
     ingeniero: "Hector Ogaz",
-    estacion: "La Rancherita",
+    vendedor: "Luis Ramírez",
+    estacion: "La más picuda",
     estado: "Confirmado",
     lugar: "Instalaciones cliente",
     notas: "Atendido por Gerardo"
@@ -106,7 +112,8 @@ const INITIAL_REMOTOS = [
     horaFin: "12:00",
     locutor: "Por asignar",
     ingeniero: "Hector Ogaz",
-    estacion: "EXA FM",
+    vendedor: "Ana Torres",
+    estacion: "Éxtasis Digital",
     estado: "Pendiente",
     lugar: "Centro de servicio",
     notas: "Pendiente confirmar horario"
@@ -134,7 +141,8 @@ export default function App() {
     horaFin: '11:00',
     locutor: '',
     ingeniero: 'Hector Ogaz',
-    estacion: 'La Rancherita',
+    vendedor: '',
+    estacion: 'La más picuda',
     estado: 'Confirmado',
     lugar: '',
     notas: ''
@@ -201,6 +209,7 @@ export default function App() {
       contrato: newRemoto.contrato.trim() || 'S/N',
       locutor: newRemoto.locutor.trim() || 'Por asignar',
       ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
+      vendedor: newRemoto.vendedor.trim() || 'Por asignar',
       id: Date.now() 
     };
 
@@ -214,7 +223,8 @@ export default function App() {
       horaFin: '11:00',
       locutor: '',
       ingeniero: 'Hector Ogaz',
-      estacion: 'La Rancherita',
+      vendedor: '',
+      estacion: 'La más picuda',
       estado: 'Confirmado',
       lugar: '',
       notas: ''
@@ -420,9 +430,8 @@ export default function App() {
               className="w-full sm:w-auto bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-orange-500"
             >
               <option value="Todas">Todas las Estaciones</option>
-              <option value="La Rancherita">La Rancherita</option>
-              <option value="EXA FM">EXA FM</option>
-              <option value="La Maxima">La Maxima</option>
+              <option value="La más picuda">La más picuda</option>
+              <option value="Éxtasis Digital">Éxtasis Digital</option>
             </select>
           </div>
         </div>
@@ -553,6 +562,9 @@ export default function App() {
                       <span className="flex items-center gap-1 text-slate-400">
                         <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
                       </span>
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <Briefcase className="w-3.5 h-3.5 shrink-0 text-orange-400" /> Vend: {r.vendedor}
+                      </span>
                     </div>
                   </div>
 
@@ -607,6 +619,7 @@ export default function App() {
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin}</span>
                         <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
                         <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3 text-orange-400" /> Vend: {r.vendedor}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 flex items-center gap-1">
                         <MapPin className="w-3 h-3 text-slate-500 shrink-0" /> {r.lugar}
@@ -678,9 +691,8 @@ export default function App() {
                     onChange={(e) => setNewRemoto({ ...newRemoto, estacion: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   >
-                    <option value="La Rancherita">La Rancherita</option>
-                    <option value="EXA FM">EXA FM</option>
-                    <option value="La Maxima">La Maxima</option>
+                    <option value="La más picuda">La más picuda</option>
+                    <option value="Éxtasis Digital">Éxtasis Digital</option>
                   </select>
                 </div>
               </div>
@@ -706,14 +718,14 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Locutor(es) <span className="text-[10px] text-slate-400 font-normal">(varios con coma)</span>
+                    Locutor(es)
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej. Gerardo, Pedro, Maria"
+                    placeholder="Ej. Gerardo, Pedro"
                     value={newRemoto.locutor}
                     onChange={(e) => setNewRemoto({ ...newRemoto, locutor: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
@@ -725,6 +737,16 @@ export default function App() {
                     type="text"
                     value={newRemoto.ingeniero}
                     onChange={(e) => setNewRemoto({ ...newRemoto, ingeniero: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Vendedor</label>
+                  <input
+                    type="text"
+                    placeholder="Nombre del vendedor"
+                    value={newRemoto.vendedor}
+                    onChange={(e) => setNewRemoto({ ...newRemoto, vendedor: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
