@@ -17,12 +17,19 @@ import {
   List,
   Grid,
   Info,
-  Wrench
+  Wrench,
+  FileText,
+  Lock,
+  Delete,
+  LogOut
 } from 'lucide-react';
+
+const CORRECT_PIN = "1234";
 
 const INITIAL_REMOTOS = [
   {
     id: 1,
+    contrato: "RAD-2026-001",
     cliente: "Llantas San José",
     fecha: "2026-11-07",
     horaInicio: "11:00",
@@ -36,6 +43,7 @@ const INITIAL_REMOTOS = [
   },
   {
     id: 2,
+    contrato: "RAD-2026-002",
     cliente: "Llantas San José (Tarde)",
     fecha: "2026-11-07",
     horaInicio: "12:30",
@@ -49,6 +57,7 @@ const INITIAL_REMOTOS = [
   },
   {
     id: 3,
+    contrato: "RAD-2026-003",
     cliente: "Moto Refa",
     fecha: "2026-11-13",
     horaInicio: "11:00",
@@ -62,6 +71,7 @@ const INITIAL_REMOTOS = [
   },
   {
     id: 4,
+    contrato: "RAD-2026-004",
     cliente: "Llantas Chihuahua",
     fecha: "2026-11-14",
     horaInicio: "11:00",
@@ -75,6 +85,7 @@ const INITIAL_REMOTOS = [
   },
   {
     id: 5,
+    contrato: "RAD-2026-005",
     cliente: "5030 (Gerardo)",
     fecha: "2026-11-14",
     horaInicio: "10:00",
@@ -88,6 +99,7 @@ const INITIAL_REMOTOS = [
   },
   {
     id: 6,
+    contrato: "RAD-2026-006",
     cliente: "Firestone",
     fecha: "2026-11-21",
     horaInicio: "10:00",
@@ -102,6 +114,10 @@ const INITIAL_REMOTOS = [
 ];
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
+
   const [remotos, setRemotos] = useState(INITIAL_REMOTOS);
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1));
   const [viewMode, setViewMode] = useState('calendar');
@@ -111,6 +127,7 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [newRemoto, setNewRemoto] = useState({
+    contrato: '',
     cliente: '',
     fecha: '2026-11-01',
     horaInicio: '10:00',
@@ -122,6 +139,31 @@ export default function App() {
     lugar: '',
     notas: ''
   });
+
+  const handleKeyPress = (num) => {
+    if (pinInput.length < 4) {
+      const nextPin = pinInput + num;
+      setPinInput(nextPin);
+      setPinError(false);
+
+      if (nextPin.length === 4) {
+        if (nextPin === CORRECT_PIN) {
+          setIsAuthenticated(true);
+          setPinError(false);
+        } else {
+          setPinError(true);
+          setTimeout(() => {
+            setPinInput("");
+          }, 600);
+        }
+      }
+    }
+  };
+
+  const handleDeleteKey = () => {
+    setPinInput(prev => prev.slice(0, -1));
+    setPinError(false);
+  };
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -156,6 +198,7 @@ export default function App() {
 
     const created = { 
       ...newRemoto, 
+      contrato: newRemoto.contrato.trim() || 'S/N',
       locutor: newRemoto.locutor.trim() || 'Por asignar',
       ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
       id: Date.now() 
@@ -164,6 +207,7 @@ export default function App() {
     setRemotos([...remotos, created]);
     setShowModal(false);
     setNewRemoto({
+      contrato: '',
       cliente: '',
       fecha: '2026-11-01',
       horaInicio: '10:00',
@@ -179,19 +223,86 @@ export default function App() {
 
   const selectedDayRemotos = selectedDay ? getRemotosForDay(selectedDay) : [];
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-6">
+          <div className="flex flex-col items-center gap-2">
+            <div className="p-3 bg-orange-500 rounded-2xl shadow-lg shadow-orange-500/30">
+              <Radio className="w-8 h-8 text-slate-950" />
+            </div>
+            <h1 className="text-3xl font-black tracking-wider text-orange-500">
+              RADIORAMA
+            </h1>
+            <p className="text-xs text-slate-400 font-medium">Control de Eventos Remotos</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-orange-500" /> Ingrese clave de acceso
+            </div>
+
+            <div className="flex justify-center gap-3 py-2">
+              {[0, 1, 2, 3].map((idx) => (
+                <div
+                  key={idx}
+                  className={`w-4 h-4 rounded-full border-2 transition-all ${
+                    pinInput.length > idx
+                      ? pinError
+                        ? 'bg-red-500 border-red-500 scale-110'
+                        : 'bg-orange-500 border-orange-500 scale-110'
+                      : 'border-slate-700 bg-slate-800'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {pinError && (
+              <p className="text-xs text-red-400 font-bold">Clave incorrecta</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 max-w-[260px] mx-auto">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+              <button
+                key={num}
+                onClick={() => handleKeyPress(num)}
+                className="h-14 bg-slate-800/80 hover:bg-slate-700 active:bg-orange-500 active:text-slate-950 rounded-2xl font-bold text-xl text-slate-200 transition-all border border-slate-700/50 shadow-sm flex items-center justify-center"
+              >
+                {num}
+              </button>
+            ))}
+            <div />
+            <button
+              onClick={() => handleKeyPress('0')}
+              className="h-14 bg-slate-800/80 hover:bg-slate-700 active:bg-orange-500 active:text-slate-950 rounded-2xl font-bold text-xl text-slate-200 transition-all border border-slate-700/50 shadow-sm flex items-center justify-center"
+            >
+              0
+            </button>
+            <button
+              onClick={handleDeleteKey}
+              className="h-14 bg-slate-800/40 hover:bg-slate-700 active:bg-slate-600 rounded-2xl font-bold text-slate-400 transition-all border border-slate-800 flex items-center justify-center"
+            >
+              <Delete className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col antialiased">
-      {/* Navbar */}
       <header className="bg-slate-800/95 backdrop-blur border-b border-slate-700 sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-gradient-to-tr from-red-600 to-amber-500 rounded-xl shadow-lg shrink-0">
-              <Radio className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            <div className="p-2 bg-gradient-to-tr from-orange-500 to-amber-500 rounded-xl shadow-lg shrink-0">
+              <Radio className="w-5 h-5 md:w-6 md:h-6 text-slate-950 font-bold" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+              <h1 className="text-lg md:text-xl font-black tracking-wider text-orange-500 flex items-center gap-1.5">
                 RADIORAMA
-                <span className="text-[10px] md:text-xs px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500/30 font-semibold">
+                <span className="text-[10px] md:text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/30 font-semibold tracking-normal">
                   Remotos
                 </span>
               </h1>
@@ -204,7 +315,7 @@ export default function App() {
               <button
                 onClick={() => setViewMode('calendar')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                  viewMode === 'calendar' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  viewMode === 'calendar' ? 'bg-orange-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Grid className="w-3.5 h-3.5" /> Calendario
@@ -212,7 +323,7 @@ export default function App() {
               <button
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                  viewMode === 'list' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  viewMode === 'list' ? 'bg-orange-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <List className="w-3.5 h-3.5" /> Lista
@@ -221,16 +332,24 @@ export default function App() {
 
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold hover:from-red-500 hover:to-red-400 shadow-md transition active:scale-95"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-bold hover:from-orange-400 hover:to-amber-400 shadow-md transition active:scale-95"
             >
               <Plus className="w-4 h-4" /> Nuevo Control
+            </button>
+
+            <button
+              onClick={() => { setIsAuthenticated(false); setPinInput(""); }}
+              className="p-2 text-slate-400 hover:text-red-400 rounded-xl bg-slate-900 border border-slate-700/80"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
             <button
               onClick={() => setShowModal(true)}
-              className="p-2 bg-red-600 text-white rounded-lg active:scale-95 transition"
+              className="p-2 bg-orange-500 text-slate-950 rounded-lg active:scale-95 transition"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -249,7 +368,7 @@ export default function App() {
               <button
                 onClick={() => { setViewMode('calendar'); setMobileMenuOpen(false); }}
                 className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
-                  viewMode === 'calendar' ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-300'
+                  viewMode === 'calendar' ? 'bg-orange-500 text-slate-950' : 'bg-slate-700 text-slate-300'
                 }`}
               >
                 <Grid className="w-3.5 h-3.5" /> Calendario
@@ -257,20 +376,23 @@ export default function App() {
               <button
                 onClick={() => { setViewMode('list'); setMobileMenuOpen(false); }}
                 className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
-                  viewMode === 'list' ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-300'
+                  viewMode === 'list' ? 'bg-orange-500 text-slate-950' : 'bg-slate-700 text-slate-300'
                 }`}
               >
                 <List className="w-3.5 h-3.5" /> Lista
               </button>
             </div>
+            <button
+              onClick={() => { setIsAuthenticated(false); setPinInput(""); }}
+              className="w-full py-2 bg-slate-900 border border-slate-700 text-red-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Salir de la App
+            </button>
           </div>
         )}
       </header>
 
-      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 pb-28 md:pb-6">
-
-        {/* Bar de Controles */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-800/80 p-3 sm:p-4 rounded-xl border border-slate-700/60 shadow-sm">
           <div className="flex items-center justify-between w-full sm:w-auto gap-3">
             <button 
@@ -295,7 +417,7 @@ export default function App() {
             <select
               value={filterEstacion}
               onChange={(e) => setFilterEstacion(e.target.value)}
-              className="w-full sm:w-auto bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-red-500"
+              className="w-full sm:w-auto bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-orange-500"
             >
               <option value="Todas">Todas las Estaciones</option>
               <option value="La Rancherita">La Rancherita</option>
@@ -305,12 +427,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Vista Calendario */}
         {viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
             <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
               {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
-                <div key={d + idx} className={`text-[11px] sm:text-xs font-bold py-1 ${idx === 0 || idx === 6 ? 'text-red-400' : 'text-slate-400'}`}>
+                <div key={d + idx} className={`text-[11px] sm:text-xs font-bold py-1 ${idx === 0 || idx === 6 ? 'text-orange-400' : 'text-slate-400'}`}>
                   <span className="sm:hidden">{d}</span>
                   <span className="hidden sm:inline">{['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'][idx]}</span>
                 </div>
@@ -334,9 +455,9 @@ export default function App() {
                     onClick={() => setSelectedDay(dayNum)}
                     className={`h-20 sm:h-28 p-1 sm:p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden relative ${
                       isSelected
-                        ? 'bg-slate-700 border-red-500 ring-2 ring-red-500/50 shadow-lg'
+                        ? 'bg-slate-700 border-orange-500 ring-2 ring-orange-500/50 shadow-lg'
                         : hasRemotos 
-                          ? 'bg-slate-800 border-red-500/70 hover:border-red-400 shadow-sm' 
+                          ? 'bg-slate-800 border-orange-500/70 hover:border-orange-400 shadow-sm' 
                           : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-700/30'
                     }`}
                   >
@@ -345,14 +466,14 @@ export default function App() {
                         {dayNum}
                       </span>
                       {hasRemotos && (
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
                       )}
                     </div>
 
                     <div className="hidden sm:flex flex-col gap-1 my-auto overflow-hidden">
                       {dayRemotos.slice(0, 2).map(r => (
                         <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px] shrink-0">
-                          <div className="font-semibold text-red-400 truncate">{r.cliente}</div>
+                          <div className="font-semibold text-orange-400 truncate">{r.cliente}</div>
                           <div className="text-[9px] text-slate-300 truncate">{r.horaInicio} hrs</div>
                         </div>
                       ))}
@@ -366,14 +487,14 @@ export default function App() {
                     <div className="sm:hidden flex flex-col justify-center items-center my-auto w-full overflow-hidden px-0.5">
                       {hasRemotos ? (
                         <div className="w-full text-center space-y-0.5">
-                          <p className="text-[9px] font-bold text-red-400 leading-tight truncate w-full">
+                          <p className="text-[9px] font-bold text-orange-400 leading-tight truncate w-full">
                             {dayRemotos[0].cliente}
                           </p>
                           <p className="text-[8px] text-slate-300 font-medium leading-none">
                             {dayRemotos[0].horaInicio} hrs
                           </p>
                           {dayRemotos.length > 1 && (
-                            <span className="inline-block text-[8px] font-bold bg-red-500/20 text-red-300 px-1 rounded border border-red-500/30 leading-none mt-0.5">
+                            <span className="inline-block text-[8px] font-bold bg-orange-500/20 text-orange-300 px-1 rounded border border-orange-500/30 leading-none mt-0.5">
                               +{dayRemotos.length - 1}
                             </span>
                           )}
@@ -392,7 +513,6 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* Vista Lista */
           <div className="space-y-3">
             {filteredRemotos.length === 0 ? (
               <div className="text-center py-12 bg-slate-800/40 rounded-xl border border-slate-700">
@@ -403,12 +523,15 @@ export default function App() {
               filteredRemotos.map(r => (
                 <div 
                   key={r.id} 
-                  className="bg-slate-800 rounded-xl border border-slate-700/70 p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md hover:border-red-500/50 transition"
+                  className="bg-slate-800 rounded-xl border border-slate-700/70 p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md hover:border-orange-500/50 transition"
                 >
                   <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-[10px] sm:text-xs rounded-md">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-[10px] sm:text-xs rounded-md">
                         {r.estacion}
+                      </span>
+                      <span className="px-2 py-0.5 bg-slate-900 text-slate-300 font-mono text-[10px] sm:text-xs rounded-md border border-slate-700 flex items-center gap-1">
+                        <FileText className="w-3 h-3 text-orange-400" /> {r.contrato}
                       </span>
                       <span className="text-[11px] text-slate-400 flex items-center gap-1">
                         <CalendarIcon className="w-3 h-3 text-slate-500" /> {r.fecha}
@@ -448,13 +571,12 @@ export default function App() {
           </div>
         )}
 
-        {/* Panel Inferior Flotante al Tocar Día */}
         {selectedDay && viewMode === 'calendar' && (
-          <div className="fixed bottom-0 left-0 right-0 bg-slate-800/95 border-t border-red-500/40 backdrop-blur-md p-4 z-40 shadow-2xl rounded-t-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="fixed bottom-0 left-0 right-0 bg-slate-800/95 border-t border-orange-500/40 backdrop-blur-md p-4 z-40 shadow-2xl rounded-t-2xl animate-in slide-in-from-bottom duration-200">
             <div className="max-w-7xl mx-auto space-y-3">
               <div className="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4 text-red-500" />
+                  <CalendarIcon className="w-4 h-4 text-orange-500" />
                   <h3 className="text-sm font-bold text-white">
                     Eventos del día {selectedDay} de {monthNames[month]}
                   </h3>
@@ -475,10 +597,10 @@ export default function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                   {selectedDayRemotos.map(r => (
                     <div key={r.id} className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-red-400">{r.cliente}</span>
-                        <span className="text-[10px] px-2 py-0.5 bg-red-500/20 text-red-300 rounded border border-red-500/30 font-semibold">
-                          {r.estacion}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-sm text-orange-400 truncate">{r.cliente}</span>
+                        <span className="text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-300 font-mono rounded border border-slate-700 shrink-0">
+                          #{r.contrato}
                         </span>
                       </div>
                       <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -499,7 +621,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal Nuevo Control */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
           <div className="bg-slate-800 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full max-w-lg p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -511,20 +632,32 @@ export default function App() {
             </button>
 
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-red-500" /> Agendar Control Remoto
+              <Sparkles className="w-5 h-5 text-orange-500" /> Agendar Control Remoto
             </h3>
 
             <form onSubmit={handleCreateRemoto} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Nombre del Cliente</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Llantas San José"
-                  value={newRemoto.cliente}
-                  onChange={(e) => setNewRemoto({ ...newRemoto, cliente: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nº Contrato</label>
+                  <input
+                    type="text"
+                    placeholder="Ej. RAD-102"
+                    value={newRemoto.contrato}
+                    onChange={(e) => setNewRemoto({ ...newRemoto, contrato: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nombre del Cliente</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Llantas San José"
+                    value={newRemoto.cliente}
+                    onChange={(e) => setNewRemoto({ ...newRemoto, cliente: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -535,7 +668,7 @@ export default function App() {
                     required
                     value={newRemoto.fecha}
                     onChange={(e) => setNewRemoto({ ...newRemoto, fecha: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div>
@@ -543,7 +676,7 @@ export default function App() {
                   <select
                     value={newRemoto.estacion}
                     onChange={(e) => setNewRemoto({ ...newRemoto, estacion: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   >
                     <option value="La Rancherita">La Rancherita</option>
                     <option value="EXA FM">EXA FM</option>
@@ -559,7 +692,7 @@ export default function App() {
                     type="time"
                     value={newRemoto.horaInicio}
                     onChange={(e) => setNewRemoto({ ...newRemoto, horaInicio: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div>
@@ -568,7 +701,7 @@ export default function App() {
                     type="time"
                     value={newRemoto.horaFin}
                     onChange={(e) => setNewRemoto({ ...newRemoto, horaFin: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -583,18 +716,16 @@ export default function App() {
                     placeholder="Ej. Gerardo, Pedro, Maria"
                     value={newRemoto.locutor}
                     onChange={(e) => setNewRemoto({ ...newRemoto, locutor: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Ingeniero
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Ingeniero</label>
                   <input
                     type="text"
                     value={newRemoto.ingeniero}
                     onChange={(e) => setNewRemoto({ ...newRemoto, ingeniero: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -606,7 +737,7 @@ export default function App() {
                   placeholder="Ej. Av. Tecnológico #123"
                   value={newRemoto.lugar}
                   onChange={(e) => setNewRemoto({ ...newRemoto, lugar: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500"
                 />
               </div>
 
@@ -616,7 +747,7 @@ export default function App() {
                   placeholder="Observaciones de la transmisión..."
                   value={newRemoto.notas}
                   onChange={(e) => setNewRemoto({ ...newRemoto, notas: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500 h-16 resize-none"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 h-16 resize-none"
                 />
               </div>
 
@@ -630,7 +761,7 @@ export default function App() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-lg shadow-md"
+                  className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs rounded-lg shadow-md"
                 >
                   Guardar
                 </button>
