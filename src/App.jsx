@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from './firebase';
+import { collection, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
 import { 
   Calendar as CalendarIcon, 
   Radio, 
@@ -33,6 +35,7 @@ export default function App() {
   const [pinError, setPinError] = useState(false);
 
   const [remotos, setRemotos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1));
   const [viewMode, setViewMode] = useState('calendar');
   const [filterEstacion, setFilterEstacion] = useState('Todas');
@@ -55,6 +58,24 @@ export default function App() {
     notas: ''
   });
 
+  // Escuchar la base de datos de Firebase en tiempo real
+  useEffect(() => {
+    const q = query(collection(db, "remotos"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setRemotos(docs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error al leer Firestore:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleKeyPress = (num) => {
     if (pinInput.length < 4) {
       const nextPin = pinInput + num;
@@ -67,9 +88,7 @@ export default function App() {
           setPinError(false);
         } else {
           setPinError(true);
-          setTimeout(() => {
-            setPinInput("");
-          }, 600);
+          setTimeout(() => setPinInput(""), 600);
         }
       }
     }
@@ -107,35 +126,39 @@ export default function App() {
     return filteredRemotos.filter(r => r.fecha === dateStr);
   };
 
-  const handleCreateRemoto = (e) => {
+  const handleCreateRemoto = async (e) => {
     e.preventDefault();
     if (!newRemoto.cliente || !newRemoto.fecha) return;
 
-    const created = { 
-      ...newRemoto, 
-      contrato: newRemoto.contrato.trim() || 'S/N',
-      locutor: newRemoto.locutor.trim() || 'Por asignar',
-      ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
-      vendedor: newRemoto.vendedor.trim() || 'Por asignar',
-      id: Date.now() 
-    };
+    try {
+      const dataToSave = { 
+        ...newRemoto, 
+        contrato: newRemoto.contrato.trim() || 'S/N',
+        locutor: newRemoto.locutor.trim() || 'Por asignar',
+        ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
+        vendedor: newRemoto.vendedor.trim() || 'Por asignar',
+        createdAt: new Date().toISOString()
+      };
 
-    setRemotos([...remotos, created]);
-    setShowModal(false);
-    setNewRemoto({
-      contrato: '',
-      cliente: '',
-      fecha: '2026-11-01',
-      horaInicio: '10:00',
-      horaFin: '11:00',
-      locutor: '',
-      ingeniero: 'Hector Ogaz',
-      vendedor: '',
-      estacion: 'La más picuda',
-      estado: 'Confirmado',
-      lugar: '',
-      notas: ''
-    });
+      await addDoc(collection(db, "remotos"), dataToSave);
+      setShowModal(false);
+      setNewRemoto({
+        contrato: '',
+        cliente: '',
+        fecha: '2026-11-01',
+        horaInicio: '10:00',
+        horaFin: '11:00',
+        locutor: '',
+        ingeniero: 'Hector Ogaz',
+        vendedor: '',
+        estacion: 'La más picuda',
+        estado: 'Confirmado',
+        lugar: '',
+        notas: ''
+      });
+    } catch (err) {
+      console.error("Error al guardar en Firebase:", err);
+    }
   };
 
   const selectedDayRemotos = selectedDay ? getRemotosForDay(selectedDay) : [];
@@ -343,7 +366,11 @@ export default function App() {
           </div>
         </div>
 
-        {viewMode === 'calendar' ? (
+        {loading ? (
+          <div className="text-center py-12 text-slate-400 text-sm animate-pulse">
+            Cargando eventos desde la base de datos...
+          </div>
+        ) : viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
             <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
               {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
@@ -627,9 +654,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Locutor(es)
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Locutor(es)</label>
                   <input
                     type="text"
                     placeholder="Ej. Gerardo, Pedro"
