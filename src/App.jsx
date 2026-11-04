@@ -27,105 +27,12 @@ import {
 
 const CORRECT_PIN = "1234";
 
-const INITIAL_REMOTOS = [
-  {
-    id: 1,
-    contrato: "RAD-2026-001",
-    cliente: "Llantas San José",
-    fecha: "2026-11-07",
-    horaInicio: "11:00",
-    horaFin: "12:00",
-    locutor: "Por asignar",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Carlos Mendoza",
-    estacion: "La más picuda",
-    estado: "Confirmado",
-    lugar: "Sucursal Principal",
-    notas: "Control de 11:00 AM a 12:00 PM"
-  },
-  {
-    id: 2,
-    contrato: "RAD-2026-002",
-    cliente: "Llantas San José (Tarde)",
-    fecha: "2026-11-07",
-    horaInicio: "12:30",
-    horaFin: "13:30",
-    locutor: "Por asignar",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Carlos Mendoza",
-    estacion: "La más picuda",
-    estado: "Confirmado",
-    lugar: "Sucursal Principal",
-    notas: "Segundo bloque 12:30 PM"
-  },
-  {
-    id: 3,
-    contrato: "RAD-2026-003",
-    cliente: "Moto Refa",
-    fecha: "2026-11-13",
-    horaInicio: "11:00",
-    horaFin: "12:00",
-    locutor: "Por asignar",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Ana Torres",
-    estacion: "Éxtasis Digital",
-    estado: "Confirmado",
-    lugar: "Local comercial",
-    notas: "Transmisión en vivo"
-  },
-  {
-    id: 4,
-    contrato: "RAD-2026-004",
-    cliente: "Llantas Chihuahua",
-    fecha: "2026-11-14",
-    horaInicio: "11:00",
-    horaFin: "12:00",
-    locutor: "Por asignar",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Carlos Mendoza",
-    estacion: "La más picuda",
-    estado: "Confirmado",
-    lugar: "Matriz",
-    notas: "Remoto matutino"
-  },
-  {
-    id: 5,
-    contrato: "RAD-2026-005",
-    cliente: "5030 (Gerardo)",
-    fecha: "2026-11-14",
-    horaInicio: "10:00",
-    horaFin: "11:00",
-    locutor: "Gerardo",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Luis Ramírez",
-    estacion: "La más picuda",
-    estado: "Confirmado",
-    lugar: "Instalaciones cliente",
-    notas: "Atendido por Gerardo"
-  },
-  {
-    id: 6,
-    contrato: "RAD-2026-006",
-    cliente: "Firestone",
-    fecha: "2026-11-21",
-    horaInicio: "10:00",
-    horaFin: "12:00",
-    locutor: "Por asignar",
-    ingeniero: "Hector Ogaz",
-    vendedor: "Ana Torres",
-    estacion: "Éxtasis Digital",
-    estado: "Pendiente",
-    lugar: "Centro de servicio",
-    notas: "Pendiente confirmar horario"
-  }
-];
-
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
 
-  const [remotos, setRemotos] = useState(INITIAL_REMOTOS);
+  const [remotos, setRemotos] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1));
   const [viewMode, setViewMode] = useState('calendar');
   const [filterEstacion, setFilterEstacion] = useState('Todas');
