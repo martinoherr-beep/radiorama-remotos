@@ -261,10 +261,10 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 pb-24 md:pb-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 pb-28 md:pb-6">
 
         {/* Bar de Controles */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800/80 p-3 sm:p-4 rounded-xl border border-slate-700/60 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-800/80 p-3 sm:p-4 rounded-xl border border-slate-700/60 shadow-sm">
           <div className="flex items-center justify-between w-full sm:w-auto gap-3">
             <button 
               onClick={handlePrevMonth}
@@ -298,23 +298,23 @@ export default function App() {
           </div>
         </div>
 
-        {/* Vista Calendario */}
+        {/* Vista Calendario de Dimensiones Rígidas y Perfectas */}
         {viewMode === 'calendar' ? (
-          <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-2 sm:p-4 md:p-6 shadow-xl overflow-hidden">
+          <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
             {/* Cabecera Días */}
-            <div className="grid grid-cols-7 gap-1 text-center mb-1">
+            <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
               {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
-                <div key={d + idx} className={`text-[10px] sm:text-xs font-bold py-1 rounded ${idx === 0 || idx === 6 ? 'text-red-400' : 'text-slate-400'}`}>
+                <div key={d + idx} className={`text-[11px] sm:text-xs font-bold py-1 ${idx === 0 || idx === 6 ? 'text-red-400' : 'text-slate-400'}`}>
                   <span className="sm:hidden">{d}</span>
                   <span className="hidden sm:inline">{['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'][idx]}</span>
                 </div>
               ))}
             </div>
 
-            {/* Rejilla de Días más alta en celular (h-20 en móvil, h-28 en tablet/PC) */}
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+            {/* Rejilla de Cuadros con Medida Exacta e Inflexible */}
+            <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {Array.from({ length: firstDayIndex }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-20 sm:h-28 bg-slate-900/30 rounded-lg border border-slate-800/40 opacity-20" />
+                <div key={`empty-${i}`} className="h-20 sm:h-28 bg-slate-900/20 rounded-lg border border-slate-800/30 opacity-20" />
               ))}
 
               {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -327,29 +327,30 @@ export default function App() {
                   <div
                     key={`day-${dayNum}`}
                     onClick={() => setSelectedDay(dayNum)}
-                    className={`h-20 sm:h-28 p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden relative ${
+                    className={`h-20 sm:h-28 p-1 sm:p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden relative ${
                       isSelected
                         ? 'bg-slate-700 border-red-500 ring-2 ring-red-500/50 shadow-lg'
                         : hasRemotos 
-                          ? 'bg-slate-800 border-red-500/60 hover:border-red-400 shadow-sm' 
+                          ? 'bg-slate-800 border-red-500/70 hover:border-red-400 shadow-sm' 
                           : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-700/30'
                     }`}
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span className={`text-xs sm:text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
+                    {/* Header del día */}
+                    <div className="flex items-center justify-between w-full shrink-0">
+                      <span className={`text-[11px] sm:text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
                         {dayNum}
                       </span>
                       {hasRemotos && (
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
                       )}
                     </div>
 
-                    {/* Muestra nombres en el cuadro con más espacio */}
-                    <div className="space-y-1 my-0.5 overflow-hidden">
+                    {/* Contenido en Pantalla Completa/Tablet (Squeeze con Truncate) */}
+                    <div className="hidden sm:flex flex-col gap-1 my-auto overflow-hidden">
                       {dayRemotos.slice(0, 2).map(r => (
-                        <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1 py-0.5 text-[9px] sm:text-[10px] leading-tight">
+                        <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px] shrink-0">
                           <div className="font-semibold text-red-400 truncate">{r.cliente}</div>
-                          <div className="text-[8px] sm:text-[9px] text-slate-300 truncate">{r.horaInicio} hrs</div>
+                          <div className="text-[9px] text-slate-300 truncate">{r.horaInicio} hrs</div>
                         </div>
                       ))}
                       {dayRemotos.length > 2 && (
@@ -359,9 +360,28 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Banner inferior */}
+                    {/* Contenido en Celular (Texto súper limpio con bordes protegidos) */}
+                    <div className="sm:hidden flex flex-col justify-center items-center my-auto w-full overflow-hidden px-0.5">
+                      {hasRemotos ? (
+                        <div className="w-full text-center space-y-0.5">
+                          <p className="text-[9px] font-bold text-red-400 leading-tight truncate w-full">
+                            {dayRemotos[0].cliente}
+                          </p>
+                          <p className="text-[8px] text-slate-300 font-medium leading-none">
+                            {dayRemotos[0].horaInicio} hrs
+                          </p>
+                          {dayRemotos.length > 1 && (
+                            <span className="inline-block text-[8px] font-bold bg-red-500/20 text-red-300 px-1 rounded border border-red-500/30 leading-none mt-0.5">
+                              +{dayRemotos.length - 1}
+                            </span>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Pie de cuadro para desktop */}
                     {hasRemotos && (
-                      <div className="text-[8px] sm:text-[9px] text-slate-400 font-medium text-right truncate">
+                      <div className="hidden sm:block text-[9px] text-slate-400 font-medium text-right shrink-0 truncate">
                         {dayRemotos.length} evento{dayRemotos.length > 1 ? 's' : ''}
                       </div>
                     )}
@@ -424,7 +444,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Panel Desplegable al seleccionar un día en el Calendario */}
+        {/* Panel Inferior Flotante al Tocar Día */}
         {selectedDay && viewMode === 'calendar' && (
           <div className="fixed bottom-0 left-0 right-0 bg-slate-800/95 border-t border-red-500/40 backdrop-blur-md p-4 z-40 shadow-2xl rounded-t-2xl animate-in slide-in-from-bottom duration-200">
             <div className="max-w-7xl mx-auto space-y-3">
