@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, addDoc, query } from 'firebase/firestore';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { 
   Calendar as CalendarIcon, 
   Radio, 
@@ -36,7 +36,8 @@ export default function App() {
 
   const [remotos, setRemotos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [firestoreError, setFirestoreError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1));
   const [viewMode, setViewMode] = useState('calendar');
@@ -60,24 +61,29 @@ export default function App() {
     notas: ''
   });
 
-  useEffect(() => {
-    const q = query(collection(db, "remotos"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
+  const cargarRemotos = async () => {
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const querySnapshot = await getDocs(collection(db, "remotos"));
+      const docs = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       setRemotos(docs);
+    } catch (err) {
+      console.error("Error al cargar desde Firestore:", err);
+      setErrorMessage("Error de conexión a Firestore: " + (err.message || err.code));
+    } finally {
       setLoading(false);
-      setFirestoreError(null);
-    }, (error) => {
-      console.error("Error al leer Firestore:", error);
-      setFirestoreError("Error de permisos o conexión en Firestore.");
-      setLoading(false);
-    });
+    }
+  };
 
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => {
+    if (isAuthenticated) {
+      cargarRemotos();
+    }
+  }, [isAuthenticated]);
 
   const handleKeyPress = (num) => {
     if (pinInput.length < 4) {
@@ -133,6 +139,9 @@ export default function App() {
     e.preventDefault();
     if (!newRemoto.cliente || !newRemoto.fecha) return;
 
+    setSaving(true);
+    setErrorMessage("");
+
     try {
       const dataToSave = { 
         ...newRemoto, 
@@ -159,9 +168,15 @@ export default function App() {
         lugar: '',
         notas: ''
       });
+
+      await cargarRemotos();
     } catch (err) {
-      console.error("Error al guardar en Firebase:", err);
-      alert("No se pudo guardar el evento. Verifica las reglas de tu base de datos en Firebase.");
+      console.error("Error al guardar:", err);
+      const msg = err.message || err.code || "Fallo desconocido al guardar";
+      setErrorMessage("No se pudo guardar: " + msg);
+      alert("Error al guardar en Firebase: " + msg);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -337,9 +352,9 @@ export default function App() {
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 pb-28 md:pb-6">
-        {firestoreError && (
+        {errorMessage && (
           <div className="p-3 bg-red-500/20 border border-red-500/50 text-red-300 rounded-xl text-xs text-center font-semibold">
-            {firestoreError} Asegúrate de haber publicado las reglas de lectura/escritura en Firebase Console.
+            {errorMessage}
           </div>
         )}
 
@@ -378,7 +393,7 @@ export default function App() {
 
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm animate-pulse">
-            Conectando con la base de datos de Firebase...
+            Cargando registros desde Firebase...
           </div>
         ) : viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
@@ -725,9 +740,10 @@ export default function App() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs rounded-lg shadow-md"
+                  disabled={saving}
+                  className="px-4 py-2 bg-orange-500 hover:bg-orange-400 disabled:bg-slate-600 text-slate-950 font-bold text-xs rounded-lg shadow-md"
                 >
-                  Guardar
+                  {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             </form>
