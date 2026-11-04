@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, query } from 'firebase/firestore';
 import { 
   Calendar as CalendarIcon, 
   Radio, 
@@ -36,6 +36,8 @@ export default function App() {
 
   const [remotos, setRemotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [firestoreError, setFirestoreError] = useState(null);
+
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1));
   const [viewMode, setViewMode] = useState('calendar');
   const [filterEstacion, setFilterEstacion] = useState('Todas');
@@ -58,7 +60,6 @@ export default function App() {
     notas: ''
   });
 
-  // Escuchar la base de datos de Firebase en tiempo real
   useEffect(() => {
     const q = query(collection(db, "remotos"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -68,8 +69,10 @@ export default function App() {
       }));
       setRemotos(docs);
       setLoading(false);
+      setFirestoreError(null);
     }, (error) => {
       console.error("Error al leer Firestore:", error);
+      setFirestoreError("Error de permisos o conexión en Firestore.");
       setLoading(false);
     });
 
@@ -158,6 +161,7 @@ export default function App() {
       });
     } catch (err) {
       console.error("Error al guardar en Firebase:", err);
+      alert("No se pudo guardar el evento. Verifica las reglas de tu base de datos en Firebase.");
     }
   };
 
@@ -333,6 +337,12 @@ export default function App() {
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 pb-28 md:pb-6">
+        {firestoreError && (
+          <div className="p-3 bg-red-500/20 border border-red-500/50 text-red-300 rounded-xl text-xs text-center font-semibold">
+            {firestoreError} Asegúrate de haber publicado las reglas de lectura/escritura en Firebase Console.
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-800/80 p-3 sm:p-4 rounded-xl border border-slate-700/60 shadow-sm">
           <div className="flex items-center justify-between w-full sm:w-auto gap-3">
             <button 
@@ -368,7 +378,7 @@ export default function App() {
 
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm animate-pulse">
-            Cargando eventos desde la base de datos...
+            Conectando con la base de datos de Firebase...
           </div>
         ) : viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
@@ -550,7 +560,7 @@ export default function App() {
                         </span>
                       </div>
                       <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin} hrs</span>
                         <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
                         <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
                         <span className="flex items-center gap-1"><Briefcase className="w-3 h-3 text-orange-400" /> Vend: {r.vendedor}</span>
