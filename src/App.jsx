@@ -297,76 +297,76 @@ export default function App() {
           </div>
         </div>
 
-        {/* Calendar View */}
-        {viewMode === 'calendar' ? (
-          <div className="bg-slate-800/60 rounded-2xl border border-slate-700/60 p-4 md:p-6 shadow-xl">
-            {/* Days Header */}
-            <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 text-center">
-              {['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'].map((d, idx) => (
-                <div key={d} className={`text-xs font-bold py-2 rounded-md ${idx === 0 || idx === 6 ? 'text-red-400 bg-slate-800/40' : 'text-slate-400'}`}>
-                  {d}
+       {/* Vista Calendario */}
+{viewMode === 'calendar' ? (
+  <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-2 sm:p-4 md:p-6 shadow-xl overflow-hidden">
+    {/* Cabecera Días */}
+    <div className="grid grid-cols-7 gap-1 text-center mb-1">
+      {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
+        <div key={d + idx} className={`text-[10px] sm:text-xs font-bold py-1 rounded ${idx === 0 || idx === 6 ? 'text-red-400' : 'text-slate-400'}`}>
+          <span className="sm:hidden">{d}</span>
+          <span className="hidden sm:inline">{['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'][idx]}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Rejilla de Días con altura/aspecto uniforme */}
+    <div className="grid grid-cols-7 gap-1 sm:gap-2">
+      {Array.from({ length: firstDayIndex }).map((_, i) => (
+        <div key={`empty-${i}`} className="h-12 sm:h-24 bg-slate-900/30 rounded-lg border border-slate-800/40 opacity-20" />
+      ))}
+
+      {Array.from({ length: daysInMonth }).map((_, i) => {
+        const dayNum = i + 1;
+        const dayRemotos = getRemotosForDay(dayNum);
+        const hasRemotos = dayRemotos.length > 0;
+
+        return (
+          <div
+            key={`day-${dayNum}`}
+            onClick={() => setSelectedDay(dayNum)}
+            className={`h-12 sm:h-auto sm:min-h-[100px] p-1 sm:p-2 rounded-lg border transition-all cursor-pointer flex flex-col justify-between overflow-hidden ${
+              hasRemotos 
+                ? 'bg-slate-800 border-red-500/60 hover:border-red-400 shadow-sm' 
+                : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-700/30'
+            }`}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span className={`text-[11px] sm:text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
+                {dayNum}
+              </span>
+              {hasRemotos && (
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500 animate-pulse" />
+              )}
+            </div>
+
+            {/* Vista Desktop / Tablet */}
+            <div className="hidden sm:block space-y-1 my-1 overflow-y-auto max-h-[60px] scrollbar-none">
+              {dayRemotos.map(r => (
+                <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px]">
+                  <div className="font-semibold text-red-400 truncate">{r.cliente}</div>
+                  <div className="text-[9px] text-slate-400 flex items-center justify-between">
+                    <span>{r.horaInicio}</span>
+                    <span className="text-[8px] bg-slate-800 px-1 rounded text-slate-300">{r.estacion}</span>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Grid */}
-            <div className="grid grid-cols-7 gap-1 md:gap-2 auto-rows-fr">
-              {/* Offset days */}
-              {Array.from({ length: firstDayIndex }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[90px] md:min-h-[120px] bg-slate-900/40 rounded-xl opacity-30 border border-slate-800/50" />
-              ))}
-
-              {/* Month days */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const dayNum = i + 1;
-                const dayRemotos = getRemotosForDay(dayNum);
-                const hasRemotos = dayRemotos.length > 0;
-
-                return (
-                  <div
-                    key={`day-${dayNum}`}
-                    onClick={() => setSelectedDay(dayNum)}
-                    className={`min-h-[90px] md:min-h-[120px] p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                      hasRemotos 
-                        ? 'bg-slate-800 border-red-500/40 hover:border-red-500/80 shadow-md' 
-                        : 'bg-slate-800/40 border-slate-700/40 hover:bg-slate-700/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
-                        {dayNum}
-                      </span>
-                      {hasRemotos && (
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      )}
-                    </div>
-
-                    <div className="space-y-1 my-1 overflow-y-auto max-h-[70px] scrollbar-thin">
-                      {dayRemotos.map(r => (
-                        <div 
-                          key={r.id} 
-                          className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-1 text-[11px] hover:border-red-400 transition"
-                        >
-                          <div className="font-semibold text-red-400 truncate">{r.cliente}</div>
-                          <div className="text-[10px] text-slate-400 flex items-center justify-between">
-                            <span>{r.horaInicio}</span>
-                            <span className="text-[9px] bg-slate-800 px-1 rounded text-slate-300">{r.estacion}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {hasRemotos && (
-                      <div className="text-[10px] text-slate-400 text-right font-medium">
-                        {dayRemotos.length} evento{dayRemotos.length > 1 ? 's' : ''}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {/* Vista Compacta Móvil (Muestra un indicador/badge fijo sin deformar el cuadro) */}
+            {hasRemotos && (
+              <div className="sm:hidden flex items-center justify-center pb-0.5">
+                <span className="text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 px-1 rounded-md leading-none py-0.5">
+                  {dayRemotos.length} {dayRemotos.length === 1 ? 'remoto' : 'remotos'}
+                </span>
+              </div>
+            )}
           </div>
-        ) : (
+        );
+      })}
+    </div>
+  </div>
+) : (
           /* List View */
           <div className="space-y-4">
             {filteredRemotos.length === 0 ? (
