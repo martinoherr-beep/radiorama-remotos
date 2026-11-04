@@ -16,7 +16,8 @@ import {
   Sparkles,
   List,
   Grid,
-  Info
+  Info,
+  Wrench
 } from 'lucide-react';
 
 const INITIAL_REMOTOS = [
@@ -27,7 +28,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "11:00",
     horaFin: "12:00",
     locutor: "Por asignar",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "La Rancherita",
     estado: "Confirmado",
     lugar: "Sucursal Principal",
@@ -40,7 +41,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "12:30",
     horaFin: "13:30",
     locutor: "Por asignar",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "La Rancherita",
     estado: "Confirmado",
     lugar: "Sucursal Principal",
@@ -53,7 +54,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "11:00",
     horaFin: "12:00",
     locutor: "Por asignar",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "EXA FM",
     estado: "Confirmado",
     lugar: "Local comercial",
@@ -66,7 +67,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "11:00",
     horaFin: "12:00",
     locutor: "Por asignar",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "La Maxima",
     estado: "Confirmado",
     lugar: "Matriz",
@@ -79,7 +80,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "10:00",
     horaFin: "11:00",
     locutor: "Gerardo",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "La Rancherita",
     estado: "Confirmado",
     lugar: "Instalaciones cliente",
@@ -92,7 +93,7 @@ const INITIAL_REMOTOS = [
     horaInicio: "10:00",
     horaFin: "12:00",
     locutor: "Por asignar",
-    tecnico: "Por asignar",
+    ingeniero: "Hector Ogaz",
     estacion: "EXA FM",
     estado: "Pendiente",
     lugar: "Centro de servicio",
@@ -115,7 +116,7 @@ export default function App() {
     horaInicio: '10:00',
     horaFin: '11:00',
     locutor: '',
-    tecnico: '',
+    ingeniero: 'Hector Ogaz',
     estacion: 'La Rancherita',
     estado: 'Confirmado',
     lugar: '',
@@ -153,7 +154,13 @@ export default function App() {
     e.preventDefault();
     if (!newRemoto.cliente || !newRemoto.fecha) return;
 
-    const created = { ...newRemoto, id: Date.now() };
+    const created = { 
+      ...newRemoto, 
+      locutor: newRemoto.locutor.trim() || 'Por asignar',
+      ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
+      id: Date.now() 
+    };
+
     setRemotos([...remotos, created]);
     setShowModal(false);
     setNewRemoto({
@@ -162,7 +169,7 @@ export default function App() {
       horaInicio: '10:00',
       horaFin: '11:00',
       locutor: '',
-      tecnico: '',
+      ingeniero: 'Hector Ogaz',
       estacion: 'La Rancherita',
       estado: 'Confirmado',
       lugar: '',
@@ -298,10 +305,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Vista Calendario de Dimensiones Rígidas y Perfectas */}
+        {/* Vista Calendario */}
         {viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
-            {/* Cabecera Días */}
             <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
               {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
                 <div key={d + idx} className={`text-[11px] sm:text-xs font-bold py-1 ${idx === 0 || idx === 6 ? 'text-red-400' : 'text-slate-400'}`}>
@@ -311,7 +317,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* Rejilla de Cuadros con Medida Exacta e Inflexible */}
             <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {Array.from({ length: firstDayIndex }).map((_, i) => (
                 <div key={`empty-${i}`} className="h-20 sm:h-28 bg-slate-900/20 rounded-lg border border-slate-800/30 opacity-20" />
@@ -335,7 +340,6 @@ export default function App() {
                           : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-700/30'
                     }`}
                   >
-                    {/* Header del día */}
                     <div className="flex items-center justify-between w-full shrink-0">
                       <span className={`text-[11px] sm:text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
                         {dayNum}
@@ -345,7 +349,6 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Contenido en Pantalla Completa/Tablet (Squeeze con Truncate) */}
                     <div className="hidden sm:flex flex-col gap-1 my-auto overflow-hidden">
                       {dayRemotos.slice(0, 2).map(r => (
                         <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px] shrink-0">
@@ -360,7 +363,6 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Contenido en Celular (Texto súper limpio con bordes protegidos) */}
                     <div className="sm:hidden flex flex-col justify-center items-center my-auto w-full overflow-hidden px-0.5">
                       {hasRemotos ? (
                         <div className="w-full text-center space-y-0.5">
@@ -379,7 +381,6 @@ export default function App() {
                       ) : null}
                     </div>
 
-                    {/* Pie de cuadro para desktop */}
                     {hasRemotos && (
                       <div className="hidden sm:block text-[9px] text-slate-400 font-medium text-right shrink-0 truncate">
                         {dayRemotos.length} evento{dayRemotos.length > 1 ? 's' : ''}
@@ -424,7 +425,10 @@ export default function App() {
                         <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
                       </span>
                       <span className="flex items-center gap-1 text-slate-400">
-                        <User className="w-3.5 h-3.5 shrink-0" /> Locutor: {r.locutor}
+                        <User className="w-3.5 h-3.5 shrink-0" /> Locutor(es): {r.locutor}
+                      </span>
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
                       </span>
                     </div>
                   </div>
@@ -477,9 +481,10 @@ export default function App() {
                           {r.estacion}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-300 flex items-center gap-3">
+                      <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin}</span>
                         <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
+                        <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 flex items-center gap-1">
                         <MapPin className="w-3 h-3 text-slate-500 shrink-0" /> {r.lugar}
@@ -568,24 +573,27 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Locutor</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Locutor(es) <span className="text-[10px] text-slate-400 font-normal">(varios con coma)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="Locutor asignado"
+                    placeholder="Ej. Gerardo, Pedro, Maria"
                     value={newRemoto.locutor}
                     onChange={(e) => setNewRemoto({ ...newRemoto, locutor: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Técnico</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Ingeniero
+                  </label>
                   <input
                     type="text"
-                    placeholder="Técnico a cargo"
-                    value={newRemoto.tecnico}
-                    onChange={(e) => setNewRemoto({ ...newRemoto, tecnico: e.target.value })}
+                    value={newRemoto.ingeniero}
+                    onChange={(e) => setNewRemoto({ ...newRemoto, ingeniero: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
@@ -599,6 +607,16 @@ export default function App() {
                   value={newRemoto.lugar}
                   onChange={(e) => setNewRemoto({ ...newRemoto, lugar: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Notas adicionales</label>
+                <textarea
+                  placeholder="Observaciones de la transmisión..."
+                  value={newRemoto.notas}
+                  onChange={(e) => setNewRemoto({ ...newRemoto, notas: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500 h-16 resize-none"
                 />
               </div>
 
