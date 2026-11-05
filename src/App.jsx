@@ -135,49 +135,53 @@ export default function App() {
     return filteredRemotos.filter(r => r.fecha === dateStr);
   };
 
-  const handleCreateRemoto = async (e) => {
-    e.preventDefault();
-    if (!newRemoto.cliente || !newRemoto.fecha) return;
+const handleCreateRemoto = async (e) => {
+  e.preventDefault();
+  if (!newRemoto.cliente || !newRemoto.fecha) {
+    alert("Completa al menos el nombre del cliente y la fecha.");
+    return;
+  }
 
-    setSaving(true);
-    setErrorMessage("");
+  setSaving(true);
 
-    try {
-      const dataToSave = { 
-        ...newRemoto, 
-        contrato: newRemoto.contrato.trim() || 'S/N',
-        locutor: newRemoto.locutor.trim() || 'Por asignar',
-        ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
-        vendedor: newRemoto.vendedor.trim() || 'Por asignar',
-        createdAt: new Date().toISOString()
-      };
+  try {
+    const dataToSave = { 
+      ...newRemoto, 
+      contrato: newRemoto.contrato.trim() || 'S/N',
+      locutor: newRemoto.locutor.trim() || 'Por asignar',
+      ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
+      vendedor: newRemoto.vendedor.trim() || 'Por asignar',
+      createdAt: new Date().toISOString()
+    };
 
-      await addDoc(collection(db, "remotos"), dataToSave);
-      
-      setShowModal(false);
-      setNewRemoto({
-        contrato: '',
-        cliente: '',
-        fecha: '2026-11-01',
-        horaInicio: '10:00',
-        horaFin: '11:00',
-        locutor: '',
-        ingeniero: 'Hector Ogaz',
-        vendedor: '',
-        estacion: 'La más picuda',
-        estado: 'Confirmado',
-        lugar: '',
-        notas: ''
-      });
-    } catch (err) {
-      console.error("Error al guardar:", err);
-      const msg = err.message || err.code || "Fallo desconocido al guardar";
-      setErrorMessage("No se pudo guardar: " + msg);
-      alert("Error al guardar en Firebase: " + msg);
-    } finally {
-      setSaving(false);
-    }
-  };
+    // Petición directa a Firestore
+    const docRef = await addDoc(collection(db, "remotos"), dataToSave);
+    
+    alert("¡Guardado en Firebase con ID: " + docRef.id + "!");
+    
+    setShowModal(false);
+    setNewRemoto({
+      contrato: '',
+      cliente: '',
+      fecha: '2026-11-01',
+      horaInicio: '10:00',
+      horaFin: '11:00',
+      locutor: '',
+      ingeniero: 'Hector Ogaz',
+      vendedor: '',
+      estacion: 'La más picuda',
+      estado: 'Confirmado',
+      lugar: '',
+      notas: ''
+    });
+  } catch (err) {
+    console.error("Error al escribir en Firestore:", err);
+    // Este alert te dirá exactamente el motivo si la conexión o el dominio fallan
+    alert("Error de Firebase: " + err.code + " - " + err.message);
+  } finally {
+    setSaving(false);
+  }
+};
 
   const selectedDayRemotos = selectedDay ? getRemotosForDay(selectedDay) : [];
 
