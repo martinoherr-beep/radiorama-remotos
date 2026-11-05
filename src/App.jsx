@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query } from 'firebase/firestore';
 import { 
   Calendar as CalendarIcon, 
   Radio, 
@@ -24,7 +24,8 @@ import {
   Lock,
   Delete,
   LogOut,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react';
 
 const CORRECT_PIN = "1234";
@@ -61,7 +62,6 @@ export default function App() {
     notas: ''
   });
 
-  // Escucha en tiempo real a Firestore
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -77,7 +77,7 @@ export default function App() {
       setRemotos(docs);
       setLoading(false);
     }, (err) => {
-      console.error("Error en conexión en tiempo real:", err);
+      console.error("Error en tiempo real:", err);
       setErrorMessage("Error de conexión a Firestore: " + (err.message || err.code));
       setLoading(false);
     });
@@ -135,53 +135,61 @@ export default function App() {
     return filteredRemotos.filter(r => r.fecha === dateStr);
   };
 
-const handleCreateRemoto = async (e) => {
-  e.preventDefault();
-  if (!newRemoto.cliente || !newRemoto.fecha) {
-    alert("Completa al menos el nombre del cliente y la fecha.");
-    return;
-  }
+  const handleCreateRemoto = async (e) => {
+    e.preventDefault();
+    if (!newRemoto.cliente || !newRemoto.fecha) return;
 
-  setSaving(true);
+    setSaving(true);
+    setErrorMessage("");
 
-  try {
-    const dataToSave = { 
-      ...newRemoto, 
-      contrato: newRemoto.contrato.trim() || 'S/N',
-      locutor: newRemoto.locutor.trim() || 'Por asignar',
-      ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
-      vendedor: newRemoto.vendedor.trim() || 'Por asignar',
-      createdAt: new Date().toISOString()
-    };
+    try {
+      const dataToSave = { 
+        ...newRemoto, 
+        contrato: newRemoto.contrato.trim() || 'S/N',
+        locutor: newRemoto.locutor.trim() || 'Por asignar',
+        ingeniero: newRemoto.ingeniero.trim() || 'Hector Ogaz',
+        vendedor: newRemoto.vendedor.trim() || 'Por asignar',
+        createdAt: new Date().toISOString()
+      };
 
-    // Petición directa a Firestore
-    const docRef = await addDoc(collection(db, "remotos"), dataToSave);
-    
-    alert("¡Guardado en Firebase con ID: " + docRef.id + "!");
-    
-    setShowModal(false);
-    setNewRemoto({
-      contrato: '',
-      cliente: '',
-      fecha: '2026-11-01',
-      horaInicio: '10:00',
-      horaFin: '11:00',
-      locutor: '',
-      ingeniero: 'Hector Ogaz',
-      vendedor: '',
-      estacion: 'La más picuda',
-      estado: 'Confirmado',
-      lugar: '',
-      notas: ''
-    });
-  } catch (err) {
-    console.error("Error al escribir en Firestore:", err);
-    // Este alert te dirá exactamente el motivo si la conexión o el dominio fallan
-    alert("Error de Firebase: " + err.code + " - " + err.message);
-  } finally {
-    setSaving(false);
-  }
-};
+      await addDoc(collection(db, "remotos"), dataToSave);
+      
+      setShowModal(false);
+      setNewRemoto({
+        contrato: '',
+        cliente: '',
+        fecha: '2026-11-01',
+        horaInicio: '10:00',
+        horaFin: '11:00',
+        locutor: '',
+        ingeniero: 'Hector Ogaz',
+        vendedor: '',
+        estacion: 'La más picuda',
+        estado: 'Confirmado',
+        lugar: '',
+        notas: ''
+      });
+    } catch (err) {
+      console.error("Error al guardar:", err);
+      const msg = err.message || err.code || "Fallo al guardar";
+      setErrorMessage("No se pudo guardar: " + msg);
+      alert("Error al guardar en Firebase: " + msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteRemoto = async (id, cliente) => {
+    const confirmacion = window.confirm(`¿Estás seguro de eliminar el registro de "${cliente}"?`);
+    if (!confirmacion) return;
+
+    try {
+      await deleteDoc(doc(db, "remotos", id));
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      alert("No se pudo eliminar de Firebase: " + err.message);
+    }
+  };
 
   const selectedDayRemotos = selectedDay ? getRemotosForDay(selectedDay) : [];
 
@@ -396,7 +404,7 @@ const handleCreateRemoto = async (e) => {
 
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm animate-pulse">
-            Sincronizando con Firebase en tiempo real...
+            Cargando registros desde Firebase...
           </div>
         ) : viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">
@@ -494,9 +502,9 @@ const handleCreateRemoto = async (e) => {
               filteredRemotos.map(r => (
                 <div 
                   key={r.id} 
-                  className="bg-slate-800 rounded-xl border border-slate-700/70 p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md hover:border-orange-500/50 transition"
+                  className="bg-slate-800 rounded-xl border border-slate-700/70 p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md hover:border-orange-500/50 transition relative group"
                 >
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 pr-8 sm:pr-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-[10px] sm:text-xs rounded-md">
                         {r.estacion}
@@ -519,7 +527,7 @@ const handleCreateRemoto = async (e) => {
                         <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
                       </span>
                       <span className="flex items-center gap-1 text-slate-400">
-                        <User className="w-3.5 h-3.5 shrink-0" /> Locutor(es): {r.locutor}
+                        <User className="w-3.5 h-3.5 shrink-0" /> Loc: {r.locutor}
                       </span>
                       <span className="flex items-center gap-1 text-slate-400">
                         <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
@@ -530,14 +538,21 @@ const handleCreateRemoto = async (e) => {
                     </div>
                   </div>
 
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60">
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 ${
                       r.estado === 'Confirmado' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                     }`}>
                       {r.estado === 'Confirmado' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                       {r.estado}
                     </span>
-                    <p className="text-[11px] text-slate-400">{r.notas}</p>
+                    
+                    <button
+                      onClick={() => handleDeleteRemoto(r.id, r.cliente)}
+                      className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                      title="Eliminar evento"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))
@@ -570,23 +585,30 @@ const handleCreateRemoto = async (e) => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                   {selectedDayRemotos.map(r => (
-                    <div key={r.id} className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl space-y-1">
+                    <div key={r.id} className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl space-y-1 relative group">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-sm text-orange-400 truncate">{r.cliente}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-300 font-mono rounded border border-slate-700 shrink-0">
-                          #{r.contrato}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-300 font-mono rounded border border-slate-700 shrink-0">
+                            #{r.contrato}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteRemoto(r.id, r.cliente)}
+                            className="text-slate-400 hover:text-red-400 p-1"
+                            title="Eliminar evento"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin} hrs</span>
                         <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
                         <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3 text-orange-400" /> Vend: {r.vendedor}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 flex items-center gap-1">
                         <MapPin className="w-3 h-3 text-slate-500 shrink-0" /> {r.lugar}
                       </div>
-                      {r.notas && <p className="text-[10px] text-slate-500 italic pt-1">{r.notas}</p>}
                     </div>
                   ))}
                 </div>
