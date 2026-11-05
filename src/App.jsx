@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, query, orderBy } from 'firebase/firestore';
 import { 
   Calendar as CalendarIcon, 
   Radio, 
@@ -61,28 +61,28 @@ export default function App() {
     notas: ''
   });
 
-  const cargarRemotos = async () => {
+  // Escucha en tiempo real a Firestore
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     setLoading(true);
     setErrorMessage("");
-    try {
-      const querySnapshot = await getDocs(collection(db, "remotos"));
-      const docs = querySnapshot.docs.map(doc => ({
+
+    const q = query(collection(db, "remotos"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       setRemotos(docs);
-    } catch (err) {
-      console.error("Error al cargar desde Firestore:", err);
-      setErrorMessage("Error de conexión a Firestore: " + (err.message || err.code));
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (err) => {
+      console.error("Error en conexión en tiempo real:", err);
+      setErrorMessage("Error de conexión a Firestore: " + (err.message || err.code));
+      setLoading(false);
+    });
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      cargarRemotos();
-    }
+    return () => unsubscribe();
   }, [isAuthenticated]);
 
   const handleKeyPress = (num) => {
@@ -153,6 +153,7 @@ export default function App() {
       };
 
       await addDoc(collection(db, "remotos"), dataToSave);
+      
       setShowModal(false);
       setNewRemoto({
         contrato: '',
@@ -168,8 +169,6 @@ export default function App() {
         lugar: '',
         notas: ''
       });
-
-      await cargarRemotos();
     } catch (err) {
       console.error("Error al guardar:", err);
       const msg = err.message || err.code || "Fallo desconocido al guardar";
@@ -393,7 +392,7 @@ export default function App() {
 
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm animate-pulse">
-            Cargando registros desde Firebase...
+            Sincronizando con Firebase en tiempo real...
           </div>
         ) : viewMode === 'calendar' ? (
           <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl border border-slate-700/60 p-1.5 sm:p-4 md:p-6 shadow-xl overflow-hidden">

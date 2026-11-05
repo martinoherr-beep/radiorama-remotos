@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyArSyGfpTSiJNpJwmi1HjQafBmhnA-Fvf4",
@@ -12,9 +12,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Habilita el almacenamiento en caché local y sincronización en segundo plano
 export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
+  experimentalForceLongPolling: true
 });
