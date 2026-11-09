@@ -25,7 +25,8 @@ import {
   Delete,
   LogOut,
   Briefcase,
-  Trash2
+  Trash2,
+  MessageSquare
 } from 'lucide-react';
 
 const CORRECT_PIN = "1234";
@@ -523,68 +524,77 @@ export default function App() {
                 return (
                   <div 
                     key={r.id} 
-                    className={`bg-slate-800 rounded-xl border p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md transition relative group ${
+                    className={`bg-slate-800 rounded-xl border p-3.5 sm:p-5 flex flex-col justify-between gap-3 shadow-md transition relative group ${
                       isPast 
                         ? 'opacity-50 grayscale-[40%] bg-slate-800/50 border-slate-800/80' 
                         : 'border-slate-700/70 hover:border-orange-500/50'
                     }`}
                   >
-                    <div className="space-y-1.5 pr-8 sm:pr-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-2 py-0.5 border font-bold text-[10px] sm:text-xs rounded-md ${
-                          isPast ? 'bg-slate-700/50 border-slate-600 text-slate-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1.5 pr-8 sm:pr-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`px-2 py-0.5 border font-bold text-[10px] sm:text-xs rounded-md ${
+                            isPast ? 'bg-slate-700/50 border-slate-600 text-slate-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+                          }`}>
+                            {r.estacion}
+                          </span>
+                          <span className="px-2 py-0.5 bg-slate-900 text-slate-300 font-mono text-[10px] sm:text-xs rounded-md border border-slate-700 flex items-center gap-1">
+                            <FileText className={`w-3 h-3 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> {r.contrato}
+                          </span>
+                          <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                            <CalendarIcon className="w-3 h-3 text-slate-500" /> {r.fecha} {isPast && '(Finalizado)'}
+                          </span>
+                        </div>
+
+                        <h3 className={`text-base sm:text-lg font-bold ${isPast ? 'text-slate-300 line-through decoration-slate-500/50' : 'text-white'}`}>{r.cliente}</h3>
+
+                        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-4 text-xs text-slate-300">
+                          <span className={`flex items-center gap-1 font-medium ${isPast ? 'text-slate-400' : 'text-amber-300'}`}>
+                            <Clock className="w-3.5 h-3.5 shrink-0" /> {r.horaInicio} - {r.horaFin} hrs
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <User className="w-3.5 h-3.5 shrink-0" /> Loc: {r.locutor}
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-300 font-medium">
+                            <Briefcase className={`w-3.5 h-3.5 shrink-0 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> Vend: {r.vendedor}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 ${
+                          isPast
+                            ? 'bg-slate-700/40 text-slate-400 border border-slate-600/50'
+                            : r.estado === 'Confirmado' 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                         }`}>
-                          {r.estacion}
+                          {r.estado === 'Confirmado' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                          {isPast ? 'Concluido' : r.estado}
                         </span>
-                        <span className="px-2 py-0.5 bg-slate-900 text-slate-300 font-mono text-[10px] sm:text-xs rounded-md border border-slate-700 flex items-center gap-1">
-                          <FileText className={`w-3 h-3 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> {r.contrato}
-                        </span>
-                        <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                          <CalendarIcon className="w-3 h-3 text-slate-500" /> {r.fecha} {isPast && '(Finalizado)'}
-                        </span>
-                      </div>
-
-                      <h3 className={`text-base sm:text-lg font-bold ${isPast ? 'text-slate-300 line-through decoration-slate-500/50' : 'text-white'}`}>{r.cliente}</h3>
-
-                      <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-4 text-xs text-slate-300">
-                        <span className={`flex items-center gap-1 font-medium ${isPast ? 'text-slate-400' : 'text-amber-300'}`}>
-                          <Clock className="w-3.5 h-3.5 shrink-0" /> {r.horaInicio} - {r.horaFin} hrs
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <User className="w-3.5 h-3.5 shrink-0" /> Loc: {r.locutor}
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <Briefcase className={`w-3.5 h-3.5 shrink-0 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> Vend: {r.vendedor}
-                        </span>
+                        
+                        <button
+                          onClick={() => handleDeleteRemoto(r.id, r.cliente)}
+                          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                          title="Eliminar evento"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 gap-2">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 ${
-                        isPast
-                          ? 'bg-slate-700/40 text-slate-400 border border-slate-600/50'
-                          : r.estado === 'Confirmado' 
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      }`}>
-                        {r.estado === 'Confirmado' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                        {isPast ? 'Concluido' : r.estado}
-                      </span>
-                      
-                      <button
-                        onClick={() => handleDeleteRemoto(r.id, r.cliente)}
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
-                        title="Eliminar evento"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {r.notas && (
+                      <div className="pt-2 border-t border-slate-700/50 text-xs text-slate-400 flex items-start gap-1.5 italic bg-slate-900/40 p-2 rounded-lg">
+                        <MessageSquare className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                        <span>{r.notas}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -640,10 +650,16 @@ export default function App() {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin} hrs</span>
                           <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
                           <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
+                          <span className="flex items-center gap-1 text-slate-300 font-medium"><Briefcase className="w-3 h-3 text-orange-400" /> Vend: {r.vendedor}</span>
                         </div>
                         <div className="text-[11px] text-slate-400 flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" /> {r.lugar}
                         </div>
+                        {r.notas && (
+                          <div className="text-[10px] text-slate-400 italic pt-1 flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3 text-slate-500 shrink-0" /> {r.notas}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
