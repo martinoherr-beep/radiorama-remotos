@@ -85,6 +85,17 @@ export default function App() {
     return () => unsubscribe();
   }, [isAuthenticated]);
 
+  const isPastDate = (dateStr) => {
+    if (!dateStr) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const eventDate = new Date(y, m - 1, d);
+
+    return eventDate < today;
+  };
+
   const handleKeyPress = (num) => {
     if (pinInput.length < 4) {
       const nextPin = pinInput + num;
@@ -428,6 +439,11 @@ export default function App() {
                 const hasRemotos = dayRemotos.length > 0;
                 const isSelected = selectedDay === dayNum;
 
+                const formattedDay = dayNum < 10 ? `0${dayNum}` : `${dayNum}`;
+                const formattedMonth = (month + 1) < 10 ? `0${month + 1}` : `${month + 1}`;
+                const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+                const isPastDay = isPastDate(dateStr);
+
                 return (
                   <div
                     key={`day-${dayNum}`}
@@ -436,24 +452,26 @@ export default function App() {
                       isSelected
                         ? 'bg-slate-700 border-orange-500 ring-2 ring-orange-500/50 shadow-lg'
                         : hasRemotos 
-                          ? 'bg-slate-800 border-orange-500/70 hover:border-orange-400 shadow-sm' 
+                          ? isPastDay
+                            ? 'bg-slate-800/40 border-slate-700/50 opacity-50' 
+                            : 'bg-slate-800 border-orange-500/70 hover:border-orange-400 shadow-sm' 
                           : 'bg-slate-800/40 border-slate-700/30 hover:bg-slate-700/30'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full shrink-0">
-                      <span className={`text-[11px] sm:text-sm font-bold ${hasRemotos ? 'text-white' : 'text-slate-400'}`}>
+                      <span className={`text-[11px] sm:text-sm font-bold ${hasRemotos ? (isPastDay ? 'text-slate-400' : 'text-white') : 'text-slate-500'}`}>
                         {dayNum}
                       </span>
                       {hasRemotos && (
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                        <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isPastDay ? 'bg-slate-500' : 'bg-orange-500 animate-pulse'} shrink-0`} />
                       )}
                     </div>
 
                     <div className="hidden sm:flex flex-col gap-1 my-auto overflow-hidden">
                       {dayRemotos.slice(0, 2).map(r => (
-                        <div key={r.id} className="bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px] shrink-0">
-                          <div className="font-semibold text-orange-400 truncate">{r.cliente}</div>
-                          <div className="text-[9px] text-slate-300 truncate">{r.horaInicio} hrs</div>
+                        <div key={r.id} className={`bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[10px] shrink-0 ${isPastDay ? 'opacity-60' : ''}`}>
+                          <div className={`font-semibold truncate ${isPastDay ? 'text-slate-400' : 'text-orange-400'}`}>{r.cliente}</div>
+                          <div className="text-[9px] text-slate-400 truncate">{r.horaInicio} hrs</div>
                         </div>
                       ))}
                       {dayRemotos.length > 2 && (
@@ -466,14 +484,14 @@ export default function App() {
                     <div className="sm:hidden flex flex-col justify-center items-center my-auto w-full overflow-hidden px-0.5">
                       {hasRemotos ? (
                         <div className="w-full text-center space-y-0.5">
-                          <p className="text-[9px] font-bold text-orange-400 leading-tight truncate w-full">
+                          <p className={`text-[9px] font-bold leading-tight truncate w-full ${isPastDay ? 'text-slate-400' : 'text-orange-400'}`}>
                             {dayRemotos[0].cliente}
                           </p>
-                          <p className="text-[8px] text-slate-300 font-medium leading-none">
+                          <p className="text-[8px] text-slate-400 font-medium leading-none">
                             {dayRemotos[0].horaInicio} hrs
                           </p>
                           {dayRemotos.length > 1 && (
-                            <span className="inline-block text-[8px] font-bold bg-orange-500/20 text-orange-300 px-1 rounded border border-orange-500/30 leading-none mt-0.5">
+                            <span className="inline-block text-[8px] font-bold bg-slate-700 text-slate-300 px-1 rounded border border-slate-600 leading-none mt-0.5">
                               +{dayRemotos.length - 1}
                             </span>
                           )}
@@ -499,63 +517,77 @@ export default function App() {
                 <p className="text-xs text-slate-400">No hay controles remotos agendados.</p>
               </div>
             ) : (
-              filteredRemotos.map(r => (
-                <div 
-                  key={r.id} 
-                  className="bg-slate-800 rounded-xl border border-slate-700/70 p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md hover:border-orange-500/50 transition relative group"
-                >
-                  <div className="space-y-1.5 pr-8 sm:pr-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-[10px] sm:text-xs rounded-md">
-                        {r.estacion}
-                      </span>
-                      <span className="px-2 py-0.5 bg-slate-900 text-slate-300 font-mono text-[10px] sm:text-xs rounded-md border border-slate-700 flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-orange-400" /> {r.contrato}
-                      </span>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3 text-slate-500" /> {r.fecha}
-                      </span>
+              filteredRemotos.map(r => {
+                const isPast = isPastDate(r.fecha);
+
+                return (
+                  <div 
+                    key={r.id} 
+                    className={`bg-slate-800 rounded-xl border p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md transition relative group ${
+                      isPast 
+                        ? 'opacity-50 grayscale-[40%] bg-slate-800/50 border-slate-800/80' 
+                        : 'border-slate-700/70 hover:border-orange-500/50'
+                    }`}
+                  >
+                    <div className="space-y-1.5 pr-8 sm:pr-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`px-2 py-0.5 border font-bold text-[10px] sm:text-xs rounded-md ${
+                          isPast ? 'bg-slate-700/50 border-slate-600 text-slate-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+                        }`}>
+                          {r.estacion}
+                        </span>
+                        <span className="px-2 py-0.5 bg-slate-900 text-slate-300 font-mono text-[10px] sm:text-xs rounded-md border border-slate-700 flex items-center gap-1">
+                          <FileText className={`w-3 h-3 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> {r.contrato}
+                        </span>
+                        <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <CalendarIcon className="w-3 h-3 text-slate-500" /> {r.fecha} {isPast && '(Finalizado)'}
+                        </span>
+                      </div>
+
+                      <h3 className={`text-base sm:text-lg font-bold ${isPast ? 'text-slate-300 line-through decoration-slate-500/50' : 'text-white'}`}>{r.cliente}</h3>
+
+                      <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-4 text-xs text-slate-300">
+                        <span className={`flex items-center gap-1 font-medium ${isPast ? 'text-slate-400' : 'text-amber-300'}`}>
+                          <Clock className="w-3.5 h-3.5 shrink-0" /> {r.horaInicio} - {r.horaFin} hrs
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-400">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-400">
+                          <User className="w-3.5 h-3.5 shrink-0" /> Loc: {r.locutor}
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-400">
+                          <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-400">
+                          <Briefcase className={`w-3.5 h-3.5 shrink-0 ${isPast ? 'text-slate-400' : 'text-orange-400'}`} /> Vend: {r.vendedor}
+                        </span>
+                      </div>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-bold text-white">{r.cliente}</h3>
-
-                    <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-4 text-xs text-slate-300">
-                      <span className="flex items-center gap-1 text-amber-300 font-medium">
-                        <Clock className="w-3.5 h-3.5 shrink-0" /> {r.horaInicio} - {r.horaFin} hrs
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 ${
+                        isPast
+                          ? 'bg-slate-700/40 text-slate-400 border border-slate-600/50'
+                          : r.estado === 'Confirmado' 
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {r.estado === 'Confirmado' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                        {isPast ? 'Concluido' : r.estado}
                       </span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" /> {r.lugar}
-                      </span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <User className="w-3.5 h-3.5 shrink-0" /> Loc: {r.locutor}
-                      </span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Wrench className="w-3.5 h-3.5 shrink-0" /> Ing: {r.ingeniero}
-                      </span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Briefcase className="w-3.5 h-3.5 shrink-0 text-orange-400" /> Vend: {r.vendedor}
-                      </span>
+                      
+                      <button
+                        onClick={() => handleDeleteRemoto(r.id, r.cliente)}
+                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                        title="Eliminar evento"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 gap-2">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 ${
-                      r.estado === 'Confirmado' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    }`}>
-                      {r.estado === 'Confirmado' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                      {r.estado}
-                    </span>
-                    
-                    <button
-                      onClick={() => handleDeleteRemoto(r.id, r.cliente)}
-                      className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
-                      title="Eliminar evento"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -584,33 +616,37 @@ export default function App() {
                 </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                  {selectedDayRemotos.map(r => (
-                    <div key={r.id} className="bg-slate-900/90 border border-slate-700 p-3 rounded-xl space-y-1 relative group">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-sm text-orange-400 truncate">{r.cliente}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-300 font-mono rounded border border-slate-700 shrink-0">
-                            #{r.contrato}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteRemoto(r.id, r.cliente)}
-                            className="text-slate-400 hover:text-red-400 p-1"
-                            title="Eliminar evento"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                  {selectedDayRemotos.map(r => {
+                    const isPast = isPastDate(r.fecha);
+
+                    return (
+                      <div key={r.id} className={`bg-slate-900/90 border border-slate-700 p-3 rounded-xl space-y-1 relative group ${isPast ? 'opacity-60' : ''}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`font-bold text-sm truncate ${isPast ? 'text-slate-400' : 'text-orange-400'}`}>{r.cliente}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-300 font-mono rounded border border-slate-700 shrink-0">
+                              #{r.contrato}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteRemoto(r.id, r.cliente)}
+                              className="text-slate-400 hover:text-red-400 p-1"
+                              title="Eliminar evento"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin} hrs</span>
+                          <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
+                          <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" /> {r.lugar}
                         </div>
                       </div>
-                      <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-amber-400" /> {r.horaInicio} - {r.horaFin} hrs</span>
-                        <span className="flex items-center gap-1"><User className="w-3 h-3 text-slate-400" /> Loc: {r.locutor}</span>
-                        <span className="flex items-center gap-1"><Wrench className="w-3 h-3 text-slate-400" /> Ing: {r.ingeniero}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-500 shrink-0" /> {r.lugar}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
